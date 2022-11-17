@@ -1,24 +1,20 @@
 import { useState, useEffect } from 'react';
 import { STORAGE_KEY } from 'constans/localStorageKey';
 import { contactsList } from 'constans/contactList';
-import { localStorage } from 'utils/localStorage';
+import { getItem, setItem } from 'utils/localStorage';
 
-import Form from './ContactForm/ContactForm';
-import Filter from './Filter/Filter';
-import ContactList from './ContactList/ContactList';
+import Form from '../ContactForm/ContactForm';
+import Filter from '../Filter/Filter';
+import ContactList from '../ContactList/ContactList';
 
-import { Container, TitlePhonebook, TitleContacts } from 'App.styled';
+import { Container, TitlePhonebook, TitleContacts } from '../App/App.styled';
 
 export default function App() {
   const [contacts, setContacts] = useState(
-    localStorage.getItem(STORAGE_KEY) ?? contactsList
+    () => getItem(STORAGE_KEY) ?? contactsList
   );
 
   const [filter, setFilter] = useState('');
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, contacts);
-  }, [contacts]);
 
   const addContact = newContact => {
     for (const contact of contacts) {
@@ -37,11 +33,7 @@ export default function App() {
     );
   };
 
-  const changeFilter = event => {
-    const { value } = event.target;
-
-    setFilter(value);
-  };
+  const changeFilter = event => setFilter(event.target.value);
 
   const getFilteredContact = () => {
     const normalizedValue = filter.toLowerCase();
@@ -50,7 +42,9 @@ export default function App() {
     );
   };
 
-  const filteredResults = getFilteredContact();
+  useEffect(() => {
+    setItem(STORAGE_KEY, contacts);
+  }, [contacts]);
 
   return (
     <Container>
@@ -58,7 +52,10 @@ export default function App() {
       <Form onSubmit={addContact} />
       <TitleContacts>Contacts</TitleContacts>
       <Filter value={filter} onChange={changeFilter} />
-      <ContactList contacts={filteredResults} onDeleteContact={deleteContact} />
+      <ContactList
+        contacts={getFilteredContact()}
+        onDeleteContact={deleteContact}
+      />
     </Container>
   );
 }
